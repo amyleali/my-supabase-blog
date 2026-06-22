@@ -3,322 +3,315 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的 Supabase 博客</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>我的博客 - Supabase Blog</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
-    :root {
-      --primary: #3ECF8E;
-      --primary-dark: #2BB77A;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #1e293b;
-      --text-light: #64748b;
-      --border: #e2e8f0;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-    .header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: white;
-      padding: 48px 20px;
-      text-align: center;
-    }
-    .header h1 { font-size: 32px; margin-bottom: 8px; }
-    .header p { color: #94a3b8; font-size: 16px; }
-    .container { max-width: 760px; margin: 0 auto; padding: 32px 20px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; min-height: 100vh; }
+    
+    /* 导航栏 */
+    .navbar { background: #1a1a2e; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .navbar h1 { font-size: 20px; font-weight: 600; }
+    .navbar .user-info { display: flex; align-items: center; gap: 12px; }
+    .navbar .user-email { font-size: 13px; color: #a0a0b0; }
+    .navbar button { background: #e94560; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .navbar button:hover { background: #c23152; }
 
-    /* 创建表单 */
-    .create-form {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 32px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    .create-form h2 { margin-bottom: 16px; font-size: 18px; }
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 4px; }
-    input, textarea {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-      font-family: inherit;
-    }
-    input:focus, textarea:focus { border-color: var(--primary); }
-    textarea { min-height: 100px; resize: vertical; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
-    .btn-sm { padding: 6px 12px; font-size: 12px; }
-    .btn-danger { background: #fee2e2; color: #dc2626; }
-    .btn-danger:hover { background: #fecaca; }
+    /* 容器 */
+    .container { max-width: 800px; margin: 0 auto; padding: 24px; }
+
+    /* 认证表单 */
+    .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+    .auth-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
+    .auth-box h2 { margin-bottom: 8px; color: #1a1a2e; }
+    .auth-box p { color: #666; margin-bottom: 24px; font-size: 14px; }
+    .auth-box input { width: 100%; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; transition: border 0.2s; }
+    .auth-box input:focus { border-color: #4361ee; }
+    .auth-box .btn-primary { width: 100%; padding: 12px; background: #4361ee; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+    .auth-box .btn-primary:hover { background: #3a56d4; }
+    .auth-box .btn-primary:disabled { background: #a0b0e0; cursor: not-allowed; }
+    .auth-box .switch-link { margin-top: 16px; text-align: center; font-size: 13px; color: #666; }
+    .auth-box .switch-link a { color: #4361ee; cursor: pointer; text-decoration: none; }
+    .auth-box .switch-link a:hover { text-decoration: underline; }
+
+    /* 错误/成功提示 */
+    .message { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
+    .message.error { background: #fff0f0; color: #e53935; border: 1px solid #ffcdd2; }
+    .message.success { background: #f0fff0; color: #2e7d32; border: 1px solid #c8e6c9; }
+
+    /* 文章表单 */
+    .post-form { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 24px; }
+    .post-form h3 { margin-bottom: 16px; color: #1a1a2e; }
+    .post-form input, .post-form textarea { width: 100%; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; font-family: inherit; }
+    .post-form textarea { min-height: 100px; resize: vertical; }
+    .post-form input:focus, .post-form textarea:focus { border-color: #4361ee; }
+    .post-form button { padding: 10px 24px; background: #4361ee; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .post-form button:hover { background: #3a56d4; }
 
     /* 文章列表 */
-    .posts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .posts-header h2 { font-size: 20px; }
-    .post-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      transition: box-shadow 0.2s;
-      position: relative;
-    }
-    .post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .post-card h3 { font-size: 17px; margin-bottom: 8px; color: var(--text); }
-    .post-card .content { color: var(--text-light); font-size: 14px; line-height: 1.7; margin-bottom: 12px; }
-    .post-card .meta { display: flex; gap: 16px; align-items: center; font-size: 12px; color: #94a3b8; }
-    .post-card .actions { position: absolute; top: 16px; right: 16px; }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 11px;
-      background: #dcfce7;
-      color: #16a34a;
-    }
-    .empty { text-align: center; padding: 60px 20px; color: var(--text-light); }
-    .empty p { margin-top: 8px; }
-    .stats { display: flex; gap: 24px; margin-bottom: 24px; }
-    .stat-item { background: var(--card); padding: 16px 20px; border-radius: 10px; flex: 1; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-    .stat-item .number { font-size: 28px; font-weight: 700; color: var(--primary); }
-    .stat-item .label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: #1e293b; color: white;
-      padding: 12px 20px; border-radius: 8px;
-      font-size: 14px; opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 1000;
-    }
-    .toast.show { opacity: 1; }
-    .loading { text-align: center; padding: 40px; color: var(--text-light); }
+    .posts-list h3 { margin-bottom: 16px; color: #1a1a2e; }
+    .post-card { background: white; padding: 20px 24px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 12px; transition: transform 0.15s; }
+    .post-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .post-card .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .post-card .post-title { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+    .post-card .post-meta { font-size: 12px; color: #999; }
+    .post-card .post-content { font-size: 14px; color: #555; line-height: 1.6; }
+    .post-card .post-actions { margin-top: 12px; display: flex; gap: 8px; }
+    .post-card .btn-delete { padding: 6px 12px; background: #fff0f0; color: #e53935; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .post-card .btn-delete:hover { background: #e53935; color: white; }
+
+    .empty-state { text-align: center; padding: 40px; color: #999; }
+    .loading { text-align: center; padding: 20px; color: #999; }
+
+    /* 隐藏 */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>📝 我的 Supabase 博客</h1>
-    <p>数据存储在 Supabase (PostgreSQL) | 前端托管在 GitHub Pages</p>
+
+<!-- 导航栏 -->
+<div class="navbar">
+  <h1>📝 My Blog</h1>
+  <div class="user-info hidden" id="userInfo">
+    <span class="user-email" id="userEmail"></span>
+    <button onclick="handleLogout()">退出登录</button>
+  </div>
+</div>
+
+<!-- 认证页面 -->
+<div id="authPage" class="auth-container">
+  <div class="auth-box">
+    <h2 id="authTitle">登录</h2>
+    <p id="authDesc">登录后即可发布和管理你的文章</p>
+    <div id="authMessage"></div>
+    <form id="authForm" onsubmit="handleAuth(event)">
+      <input type="email" id="emailInput" placeholder="邮箱地址" required>
+      <input type="password" id="passwordInput" placeholder="密码（至少6位）" required minlength="6">
+      <button type="submit" class="btn-primary" id="authBtn">登录</button>
+    </form>
+    <div class="switch-link">
+      <span id="switchText">还没有账号？</span>
+      <a onclick="toggleAuthMode()"><span id="switchAction">去注册</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- 主页面（登录后） -->
+<div id="mainPage" class="container hidden">
+  <!-- 发文表单 -->
+  <div class="post-form">
+    <h3>✍️ 写文章</h3>
+    <div id="postMessage"></div>
+    <input type="text" id="postTitle" placeholder="文章标题" required>
+    <textarea id="postContent" placeholder="文章内容..."></textarea>
+    <button onclick="handleCreatePost()">发布文章</button>
   </div>
 
-  <div class="container">
-    <!-- 统计 -->
-    <div class="stats">
-      <div class="stat-item">
-        <div class="number" id="totalPosts">-</div>
-        <div class="label">文章总数</div>
-      </div>
-      <div class="stat-item">
-        <div class="number" id="todayPosts">-</div>
-        <div class="label">今日新增</div>
-      </div>
-      <div class="stat-item">
-        <div class="number" id="realtimeStatus">🔴</div>
-        <div class="label">实时监听</div>
-      </div>
+  <!-- 文章列表 -->
+  <div class="posts-list">
+    <h3>📚 所有文章</h3>
+    <div id="postsList">
+      <div class="loading">加载中...</div>
     </div>
-
-    <!-- 创建文章 -->
-    <div class="create-form">
-      <h2>✍️ 发布新文章</h2>
-      <div class="form-group">
-        <label>标题</label>
-        <input id="postTitle" placeholder="输入文章标题..." maxlength="100">
-      </div>
-      <div class="form-group">
-        <label>内容</label>
-        <textarea id="postContent" placeholder="输入文章内容..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>作者</label>
-        <input id="postAuthor" placeholder="你的名字（可选）" maxlength="50">
-      </div>
-      <button class="btn btn-primary" onclick="createPost()">🚀 发布文章</button>
-    </div>
-
-    <!-- 文章列表 -->
-    <div class="posts-header">
-      <h2>📚 全部文章</h2>
-      <button class="btn btn-outline btn-sm" onclick="fetchPosts()">🔄 刷新</button>
-    </div>
-    <div id="postsList"><div class="loading">⏳ 加载中...</div></div>
   </div>
+</div>
 
-  <!-- Toast 提示 -->
-  <div class="toast" id="toast"></div>
+<script>
+// ==================== 配置 ====================
+const SUPABASE_URL = 'https://wrhnligiekozaaylpnhi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyaG5saWdpZWtvemFheWxwbmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NjMyMjQsImV4cCI6MjA4MjIzOTIyNH0.JtS87jYZoEe6N3v3RsKAeZiUdAuTvLY0PEHcOdTUmCI';
 
-  <script>
-    // ============================================================
-    // 🔑 Supabase 配置 - 这里用的是你的真实项目信息
-    // ============================================================
-    const SUPABASE_URL = 'https://wrhnligiekozaaylpnhi.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyaG5saWdpZWtvemFheWxwbmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NjMyMjQsImV4cCI6MjA4MjIzOTIyNH0.JtS87jYZoEe6N3v3RsKAeZiUdAuTvLY0PEHcOdTUmCI'
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+// ==================== 状态 ====================
+let isLoginMode = true;
+let currentUser = null;
 
-    let channel = null
+// ==================== 认证逻辑 ====================
+function toggleAuthMode() {
+  isLoginMode = !isLoginMode;
+  document.getElementById('authTitle').textContent = isLoginMode ? '登录' : '注册';
+  document.getElementById('authDesc').textContent = isLoginMode ? '登录后即可发布和管理你的文章' : '创建账号，开始你的博客之旅';
+  document.getElementById('authBtn').textContent = isLoginMode ? '登录' : '注册';
+  document.getElementById('switchText').textContent = isLoginMode ? '还没有账号？' : '已有账号？';
+  document.getElementById('switchAction').textContent = isLoginMode ? '去注册' : '去登录';
+  document.getElementById('authMessage').innerHTML = '';
+}
 
-    // ============================================================
-    // 📡 实时监听
-    // ============================================================
-    function connectRealtime() {
-      channel = supabase
-        .channel('blog-realtime')
-        .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'posts' },
-          (payload) => {
-            const action = { INSERT: '新文章发布', UPDATE: '文章更新', DELETE: '文章删除' }
-            showToast(`📡 ${action[payload.eventType] || '数据变更'}`)
-            fetchPosts()
-          }
-        )
-        .subscribe((status) => {
-          const el = document.getElementById('realtimeStatus')
-          if (status === 'SUBSCRIBED') {
-            el.textContent = '🟢'
-          }
-        })
+async function handleAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const btn = document.getElementById('authBtn');
+  const msgDiv = document.getElementById('authMessage');
+
+  btn.disabled = true;
+  btn.textContent = '处理中...';
+  msgDiv.innerHTML = '';
+
+  try {
+    let result;
+    if (isLoginMode) {
+      result = await supabase.auth.signInWithPassword({ email, password });
+    } else {
+      result = await supabase.auth.signUp({ email, password });
     }
 
-    // ============================================================
-    // 📝 创建文章
-    // ============================================================
-    async function createPost() {
-      const title = document.getElementById('postTitle').value.trim()
-      const content = document.getElementById('postContent').value.trim()
-      const author = document.getElementById('postAuthor').value.trim() || '匿名用户'
-
-      if (!title) { showToast('❌ 请输入标题'); return }
-      if (!content) { showToast('❌ 请输入内容'); return }
-
-      const { data, error } = await supabase
-        .from('posts')
-        .insert({ title, content, author, published: true })
-        .select()
-
-      if (error) {
-        showToast('❌ 发布失败: ' + error.message)
-      } else {
-        showToast('✅ 发布成功！')
-        document.getElementById('postTitle').value = ''
-        document.getElementById('postContent').value = ''
-        document.getElementById('postAuthor').value = ''
-        fetchPosts()
-      }
+    if (result.error) {
+      msgDiv.innerHTML = '<div class="message error">' + escapeHtml(result.error.message) + '</div>';
+    } else if (!isLoginMode && result.data.user && !result.data.session) {
+      msgDiv.innerHTML = '<div class="message success">注册成功！请检查邮箱确认链接（如已关闭邮箱确认则直接登录即可）</div>';
     }
+    // 登录成功会被 onAuthStateChange 捕获
+  } catch (err) {
+    msgDiv.innerHTML = '<div class="message error">网络错误: ' + escapeHtml(err.message) + '</div>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = isLoginMode ? '登录' : '注册';
+  }
+}
 
-    // ============================================================
-    // 📚 获取文章列表
-    // ============================================================
-    async function fetchPosts() {
-      const { data, error, count } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact' })
-        .eq('published', true)
-        .order('created_at', { ascending: false })
-        .limit(50)
+async function handleLogout() {
+  await supabase.auth.signOut();
+}
 
-      if (error) {
-        document.getElementById('postsList').innerHTML =
-          `<div class="empty"><p>❌ 加载失败: ${escapeHtml(error.message)}</p></div>`
-        return
-      }
+// ==================== 文章逻辑 ====================
+async function handleCreatePost() {
+  const title = document.getElementById('postTitle').value.trim();
+  const content = document.getElementById('postContent').value.trim();
+  const msgDiv = document.getElementById('postMessage');
 
-      // 更新统计
-      document.getElementById('totalPosts').textContent = count || 0
-      const today = new Date().toISOString().split('T')[0]
-      const todayCount = (data || []).filter(p =>
-        p.created_at && p.created_at.startsWith(today)
-      ).length
-      document.getElementById('todayPosts').textContent = todayCount
+  if (!title) {
+    msgDiv.innerHTML = '<div class="message error">请输入文章标题</div>';
+    return;
+  }
 
-      // 渲染列表
-      const container = document.getElementById('postsList')
-      if (!data || data.length === 0) {
-        container.innerHTML = '<div class="empty"><p>📭 暂无文章</p><p>快发布第一篇吧！</p></div>'
-        return
-      }
+  msgDiv.innerHTML = '';
 
-      container.innerHTML = data.map(post => `
-        <div class="post-card">
-          <div class="actions">
-            <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">删除</button>
-          </div>
-          <h3>${escapeHtml(post.title)}</h3>
-          <div class="content">${escapeHtml(post.content || '')}</div>
-          <div class="meta">
-            <span>👤 ${escapeHtml(post.author || '匿名')}</span>
-            <span>🕐 ${formatTime(post.created_at)}</span>
-            <span class="badge">已发布</span>
-          </div>
+  const { data, error } = await supabase
+    .from('posts')
+    .insert([{ title, content, user_id: currentUser.id }])
+    .select();
+
+  if (error) {
+    msgDiv.innerHTML = '<div class="message error">发布失败: ' + escapeHtml(error.message) + '</div>';
+  } else {
+    msgDiv.innerHTML = '<div class="message success">发布成功！</div>';
+    document.getElementById('postTitle').value = '';
+    document.getElementById('postContent').value = '';
+    setTimeout(() => { msgDiv.innerHTML = ''; }, 2000);
+    loadPosts();
+  }
+}
+
+async function handleDeletePost(postId) {
+  if (!confirm('确认删除这篇文章？')) return;
+
+  const { error } = await supabase
+    .from('posts')
+    .delete()
+    .eq('id', postId);
+
+  if (error) {
+    alert('删除失败: ' + error.message);
+  } else {
+    loadPosts();
+  }
+}
+
+async function loadPosts() {
+  const container = document.getElementById('postsList');
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = '<div class="message error">加载失败: ' + escapeHtml(error.message) + '</div>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty-state">📭 还没有文章，快写一篇吧！</div>';
+    return;
+  }
+
+  container.innerHTML = data.map(post => `
+    <div class="post-card">
+      <div class="post-header">
+        <span class="post-title">${escapeHtml(post.title)}</span>
+        <span class="post-meta">${formatDate(post.created_at)}</span>
+      </div>
+      ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ''}
+      ${post.user_id === currentUser.id ? `
+        <div class="post-actions">
+          <button class="btn-delete" onclick="handleDeletePost('${post.id}')">🗑️ 删除</button>
         </div>
-      `).join('')
-    }
+      ` : ''}
+    </div>
+  `).join('');
+}
 
-    // ============================================================
-    // 🗑️ 删除文章
-    // ============================================================
-    async function deletePost(id) {
-      if (!confirm('确认删除这篇文章？')) return
-      const { error } = await supabase.from('posts').delete().eq('id', id)
-      if (error) {
-        showToast('❌ 删除失败')
-      } else {
-        showToast('🗑️ 已删除')
-        fetchPosts()
-      }
-    }
+// ==================== 实时订阅 ====================
+function subscribeRealtime() {
+  supabase
+    .channel('posts-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+      loadPosts();
+    })
+    .subscribe();
+}
 
-    // ============================================================
-    // 工具函数
-    // ============================================================
-    function escapeHtml(text) {
-      const div = document.createElement('div')
-      div.textContent = text || ''
-      return div.innerHTML
-    }
+// ==================== 页面切换 ====================
+function showAuthPage() {
+  document.getElementById('authPage').classList.remove('hidden');
+  document.getElementById('mainPage').classList.add('hidden');
+  document.getElementById('userInfo').classList.add('hidden');
+}
 
-    function formatTime(isoStr) {
-      if (!isoStr) return ''
-      const d = new Date(isoStr)
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
-    }
+function showMainPage(user) {
+  currentUser = user;
+  document.getElementById('authPage').classList.add('hidden');
+  document.getElementById('mainPage').classList.remove('hidden');
+  document.getElementById('userInfo').classList.remove('hidden');
+  document.getElementById('userEmail').textContent = user.email;
+  loadPosts();
+  subscribeRealtime();
+}
 
-    function showToast(msg) {
-      const el = document.getElementById('toast')
-      el.textContent = msg
-      el.classList.add('show')
-      setTimeout(() => el.classList.remove('show'), 3000)
-    }
+// ==================== 工具函数 ====================
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
-    // ============================================================
-    // 🚀 启动
-    // ============================================================
-    fetchPosts()
-    connectRealtime()
-  </script>
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ==================== 初始化 ====================
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session && session.user) {
+    showMainPage(session.user);
+  } else {
+    showAuthPage();
+  }
+});
+
+// 检查当前会话
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session && session.user) {
+    showMainPage(session.user);
+  } else {
+    showAuthPage();
+  }
+})();
+</script>
 </body>
 </html>
