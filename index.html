@@ -54,6 +54,10 @@
 
 <div class="navbar">
   <h1>📝 My Blog</h1>
+  <div class="user-info hidden" id="guestInfo">
+    <span class="user-email">游客模式</span>
+    <button onclick="goToLogin()" style="background:#4361ee;">去登录</button>
+  </div>
   <div class="user-info hidden" id="userInfo">
     <span class="user-email" id="userEmail"></span>
     <button onclick="handleLogout()">退出登录</button>
@@ -74,11 +78,14 @@
       <span id="switchText">还没有账号？</span>
       <a onclick="toggleAuthMode()"><span id="switchAction">去注册</span></a>
     </div>
+    <div style="margin-top:16px;text-align:center;padding-top:16px;border-top:1px solid #eee;">
+      <a onclick="enterAsGuest()" style="color:#4361ee;cursor:pointer;font-size:14px;">👀 不登录，先看看文章</a>
+    </div>
   </div>
 </div>
 
 <div id="mainPage" class="container hidden">
-  <div class="post-form">
+  <div class="post-form" id="postForm">
     <h3>✍️ 写文章</h3>
     <div id="postMessage"></div>
     <input type="text" id="postTitle" placeholder="文章标题" required>
@@ -134,7 +141,9 @@ function showMainPage(user) {
   currentUser = user;
   document.getElementById('authPage').classList.add('hidden');
   document.getElementById('mainPage').classList.remove('hidden');
+  document.getElementById('postForm').classList.remove('hidden');
   document.getElementById('userInfo').classList.remove('hidden');
+  document.getElementById('guestInfo').classList.add('hidden');
   document.getElementById('userEmail').textContent = user.email;
   loadPosts();
   subscribeRealtime();
@@ -189,6 +198,24 @@ function handleAuth(e) {
 
 function handleLogout() {
   if (client) client.auth.signOut();
+}
+
+// ============ 匿名浏览 ============
+function enterAsGuest() {
+  currentUser = null;
+  document.getElementById('authPage').classList.add('hidden');
+  document.getElementById('mainPage').classList.remove('hidden');
+  document.getElementById('postForm').classList.add('hidden');
+  document.getElementById('userInfo').classList.add('hidden');
+  document.getElementById('guestInfo').classList.remove('hidden');
+  loadPosts();
+}
+
+function goToLogin() {
+  document.getElementById('guestInfo').classList.add('hidden');
+  document.getElementById('mainPage').classList.add('hidden');
+  document.getElementById('postForm').classList.remove('hidden');
+  showAuthPage();
 }
 
 // ============ 文章操作 ============
