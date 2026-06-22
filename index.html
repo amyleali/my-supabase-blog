@@ -117,15 +117,21 @@
 </div>
 
 <script>
-// ==================== 配置 ====================
-const SUPABASE_URL = 'https://wrhnligiekozaaylpnhi.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyaG5saWdpZWtvemFheWxwbmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NjMyMjQsImV4cCI6MjA4MjIzOTIyNH0.JtS87jYZoEe6N3v3RsKAeZiUdAuTvLY0PEHcOdTUmCI';
-
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // ==================== 状态 ====================
-let isLoginMode = true;
-let currentUser = null;
+var isLoginMode = true;
+var currentUser = null;
+var supabase = null;
+
+// ==================== 配置 ====================
+var SUPABASE_URL = 'https://wrhnligiekozaaylpnhi.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyaG5saWdpZWtvemFheWxwbmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NjMyMjQsImV4cCI6MjA4MjIzOTIyNH0.JtS87jYZoEe6N3v3RsKAeZiUdAuTvLY0PEHcOdTUmCI';
+
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {
+  document.getElementById('authMessage').innerHTML = '<div class="message error">Supabase SDK 加载失败，请刷新页面重试</div>';
+  console.error('Supabase init failed:', e);
+}
 
 // ==================== 认证逻辑 ====================
 function toggleAuthMode() {
