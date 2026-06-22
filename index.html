@@ -4,23 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的博客 - Supabase Blog</title>
-  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; min-height: 100vh; }
-    
-    /* 导航栏 */
     .navbar { background: #1a1a2e; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .navbar h1 { font-size: 20px; font-weight: 600; }
     .navbar .user-info { display: flex; align-items: center; gap: 12px; }
     .navbar .user-email { font-size: 13px; color: #a0a0b0; }
     .navbar button { background: #e94560; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
     .navbar button:hover { background: #c23152; }
-
-    /* 容器 */
     .container { max-width: 800px; margin: 0 auto; padding: 24px; }
-
-    /* 认证表单 */
     .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
     .auth-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
     .auth-box h2 { margin-bottom: 8px; color: #1a1a2e; }
@@ -33,13 +26,9 @@
     .auth-box .switch-link { margin-top: 16px; text-align: center; font-size: 13px; color: #666; }
     .auth-box .switch-link a { color: #4361ee; cursor: pointer; text-decoration: none; }
     .auth-box .switch-link a:hover { text-decoration: underline; }
-
-    /* 错误/成功提示 */
     .message { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
     .message.error { background: #fff0f0; color: #e53935; border: 1px solid #ffcdd2; }
     .message.success { background: #f0fff0; color: #2e7d32; border: 1px solid #c8e6c9; }
-
-    /* 文章表单 */
     .post-form { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 24px; }
     .post-form h3 { margin-bottom: 16px; color: #1a1a2e; }
     .post-form input, .post-form textarea { width: 100%; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; font-family: inherit; }
@@ -47,9 +36,6 @@
     .post-form input:focus, .post-form textarea:focus { border-color: #4361ee; }
     .post-form button { padding: 10px 24px; background: #4361ee; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
     .post-form button:hover { background: #3a56d4; }
-
-    /* 文章列表 */
-    .posts-list h3 { margin-bottom: 16px; color: #1a1a2e; }
     .post-card { background: white; padding: 20px 24px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 12px; transition: transform 0.15s; }
     .post-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
     .post-card .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -59,17 +45,13 @@
     .post-card .post-actions { margin-top: 12px; display: flex; gap: 8px; }
     .post-card .btn-delete { padding: 6px 12px; background: #fff0f0; color: #e53935; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 12px; }
     .post-card .btn-delete:hover { background: #e53935; color: white; }
-
     .empty-state { text-align: center; padding: 40px; color: #999; }
     .loading { text-align: center; padding: 20px; color: #999; }
-
-    /* 隐藏 */
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-<!-- 导航栏 -->
 <div class="navbar">
   <h1>📝 My Blog</h1>
   <div class="user-info hidden" id="userInfo">
@@ -78,7 +60,6 @@
   </div>
 </div>
 
-<!-- 认证页面 -->
 <div id="authPage" class="auth-container">
   <div class="auth-box">
     <h2 id="authTitle">登录</h2>
@@ -96,9 +77,7 @@
   </div>
 </div>
 
-<!-- 主页面（登录后） -->
 <div id="mainPage" class="container hidden">
-  <!-- 发文表单 -->
   <div class="post-form">
     <h3>✍️ 写文章</h3>
     <div id="postMessage"></div>
@@ -106,8 +85,6 @@
     <textarea id="postContent" placeholder="文章内容..."></textarea>
     <button onclick="handleCreatePost()">发布文章</button>
   </div>
-
-  <!-- 文章列表 -->
   <div class="posts-list">
     <h3>📚 所有文章</h3>
     <div id="postsList">
@@ -117,160 +94,36 @@
 </div>
 
 <script>
-// ==================== 状态 ====================
+// ============ 全局变量（最先声明）============
 var isLoginMode = true;
 var currentUser = null;
-var supabase = null;
+var client = null;
 
-// ==================== 配置 ====================
 var SUPABASE_URL = 'https://wrhnligiekozaaylpnhi.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyaG5saWdpZWtvemFheWxwbmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NjMyMjQsImV4cCI6MjA4MjIzOTIyNH0.JtS87jYZoEe6N3v3RsKAeZiUdAuTvLY0PEHcOdTUmCI';
 
-try {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch(e) {
-  document.getElementById('authMessage').innerHTML = '<div class="message error">Supabase SDK 加载失败，请刷新页面重试</div>';
-  console.error('Supabase init failed:', e);
+// ============ 工具函数 ============
+function escapeHtml(text) {
+  if (!text) return '';
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
-// ==================== 认证逻辑 ====================
-function toggleAuthMode() {
-  isLoginMode = !isLoginMode;
-  document.getElementById('authTitle').textContent = isLoginMode ? '登录' : '注册';
-  document.getElementById('authDesc').textContent = isLoginMode ? '登录后即可发布和管理你的文章' : '创建账号，开始你的博客之旅';
-  document.getElementById('authBtn').textContent = isLoginMode ? '登录' : '注册';
-  document.getElementById('switchText').textContent = isLoginMode ? '还没有账号？' : '已有账号？';
-  document.getElementById('switchAction').textContent = isLoginMode ? '去注册' : '去登录';
-  document.getElementById('authMessage').innerHTML = '';
+function formatDate(dateStr) {
+  var d = new Date(dateStr);
+  return d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
 }
 
-async function handleAuth(e) {
-  e.preventDefault();
-  const email = document.getElementById('emailInput').value.trim();
-  const password = document.getElementById('passwordInput').value;
-  const btn = document.getElementById('authBtn');
-  const msgDiv = document.getElementById('authMessage');
-
-  btn.disabled = true;
-  btn.textContent = '处理中...';
-  msgDiv.innerHTML = '';
-
-  try {
-    let result;
-    if (isLoginMode) {
-      result = await supabase.auth.signInWithPassword({ email, password });
-    } else {
-      result = await supabase.auth.signUp({ email, password });
-    }
-
-    if (result.error) {
-      msgDiv.innerHTML = '<div class="message error">' + escapeHtml(result.error.message) + '</div>';
-    } else if (!isLoginMode && result.data.user && !result.data.session) {
-      msgDiv.innerHTML = '<div class="message success">注册成功！请检查邮箱确认链接（如已关闭邮箱确认则直接登录即可）</div>';
-    }
-    // 登录成功会被 onAuthStateChange 捕获
-  } catch (err) {
-    msgDiv.innerHTML = '<div class="message error">网络错误: ' + escapeHtml(err.message) + '</div>';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = isLoginMode ? '登录' : '注册';
-  }
+function showMsg(targetId, type, text) {
+  document.getElementById(targetId).innerHTML = '<div class="message ' + type + '">' + escapeHtml(text) + '</div>';
 }
 
-async function handleLogout() {
-  await supabase.auth.signOut();
+function clearMsg(targetId) {
+  document.getElementById(targetId).innerHTML = '';
 }
 
-// ==================== 文章逻辑 ====================
-async function handleCreatePost() {
-  const title = document.getElementById('postTitle').value.trim();
-  const content = document.getElementById('postContent').value.trim();
-  const msgDiv = document.getElementById('postMessage');
-
-  if (!title) {
-    msgDiv.innerHTML = '<div class="message error">请输入文章标题</div>';
-    return;
-  }
-
-  msgDiv.innerHTML = '';
-
-  const { data, error } = await supabase
-    .from('posts')
-    .insert([{ title, content, user_id: currentUser.id }])
-    .select();
-
-  if (error) {
-    msgDiv.innerHTML = '<div class="message error">发布失败: ' + escapeHtml(error.message) + '</div>';
-  } else {
-    msgDiv.innerHTML = '<div class="message success">发布成功！</div>';
-    document.getElementById('postTitle').value = '';
-    document.getElementById('postContent').value = '';
-    setTimeout(() => { msgDiv.innerHTML = ''; }, 2000);
-    loadPosts();
-  }
-}
-
-async function handleDeletePost(postId) {
-  if (!confirm('确认删除这篇文章？')) return;
-
-  const { error } = await supabase
-    .from('posts')
-    .delete()
-    .eq('id', postId);
-
-  if (error) {
-    alert('删除失败: ' + error.message);
-  } else {
-    loadPosts();
-  }
-}
-
-async function loadPosts() {
-  const container = document.getElementById('postsList');
-  container.innerHTML = '<div class="loading">加载中...</div>';
-
-  const { data, error } = await supabase
-    .from('posts')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    container.innerHTML = '<div class="message error">加载失败: ' + escapeHtml(error.message) + '</div>';
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    container.innerHTML = '<div class="empty-state">📭 还没有文章，快写一篇吧！</div>';
-    return;
-  }
-
-  container.innerHTML = data.map(post => `
-    <div class="post-card">
-      <div class="post-header">
-        <span class="post-title">${escapeHtml(post.title)}</span>
-        <span class="post-meta">${formatDate(post.created_at)}</span>
-      </div>
-      ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ''}
-      ${post.user_id === currentUser.id ? `
-        <div class="post-actions">
-          <button class="btn-delete" onclick="handleDeletePost('${post.id}')">🗑️ 删除</button>
-        </div>
-      ` : ''}
-    </div>
-  `).join('');
-}
-
-// ==================== 实时订阅 ====================
-function subscribeRealtime() {
-  supabase
-    .channel('posts-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
-      loadPosts();
-    })
-    .subscribe();
-}
-
-// ==================== 页面切换 ====================
+// ============ 页面切换 ============
 function showAuthPage() {
   document.getElementById('authPage').classList.remove('hidden');
   document.getElementById('mainPage').classList.add('hidden');
@@ -287,37 +140,212 @@ function showMainPage(user) {
   subscribeRealtime();
 }
 
-// ==================== 工具函数 ====================
-function escapeHtml(text) {
-  if (!text) return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+// ============ 认证 ============
+function toggleAuthMode() {
+  isLoginMode = !isLoginMode;
+  document.getElementById('authTitle').textContent = isLoginMode ? '登录' : '注册';
+  document.getElementById('authDesc').textContent = isLoginMode ? '登录后即可发布和管理你的文章' : '创建账号，开始你的博客之旅';
+  document.getElementById('authBtn').textContent = isLoginMode ? '登录' : '注册';
+  document.getElementById('switchText').textContent = isLoginMode ? '还没有账号？' : '已有账号？';
+  document.getElementById('switchAction').textContent = isLoginMode ? '去注册' : '去登录';
+  clearMsg('authMessage');
 }
 
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+function handleAuth(e) {
+  e.preventDefault();
+  if (!client) {
+    showMsg('authMessage', 'error', 'Supabase 未初始化，请刷新页面');
+    return;
+  }
+
+  var email = document.getElementById('emailInput').value.trim();
+  var password = document.getElementById('passwordInput').value;
+  var btn = document.getElementById('authBtn');
+
+  btn.disabled = true;
+  btn.textContent = '处理中...';
+  clearMsg('authMessage');
+
+  var promise;
+  if (isLoginMode) {
+    promise = client.auth.signInWithPassword({ email: email, password: password });
+  } else {
+    promise = client.auth.signUp({ email: email, password: password });
+  }
+
+  promise.then(function(result) {
+    if (result.error) {
+      showMsg('authMessage', 'error', result.error.message);
+    } else if (!isLoginMode && result.data.user && !result.data.session) {
+      showMsg('authMessage', 'success', '注册成功！请检查邮箱确认，或关闭邮箱确认后直接登录');
+    }
+  }).catch(function(err) {
+    showMsg('authMessage', 'error', '网络错误: ' + (err.message || '请检查网络'));
+  }).finally(function() {
+    btn.disabled = false;
+    btn.textContent = isLoginMode ? '登录' : '注册';
+  });
 }
 
-// ==================== 初始化 ====================
-supabase.auth.onAuthStateChange((event, session) => {
-  if (session && session.user) {
-    showMainPage(session.user);
-  } else {
-    showAuthPage();
-  }
-});
+function handleLogout() {
+  if (client) client.auth.signOut();
+}
 
-// 检查当前会话
-(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session && session.user) {
-    showMainPage(session.user);
-  } else {
-    showAuthPage();
+// ============ 文章操作 ============
+function handleCreatePost() {
+  if (!client || !currentUser) return;
+
+  var title = document.getElementById('postTitle').value.trim();
+  var content = document.getElementById('postContent').value.trim();
+
+  if (!title) {
+    showMsg('postMessage', 'error', '请输入文章标题');
+    return;
   }
-})();
+  clearMsg('postMessage');
+
+  client.from('posts').insert([{ title: title, content: content, user_id: currentUser.id }]).select()
+    .then(function(res) {
+      if (res.error) {
+        showMsg('postMessage', 'error', '发布失败: ' + res.error.message);
+      } else {
+        showMsg('postMessage', 'success', '发布成功！');
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postContent').value = '';
+        setTimeout(function() { clearMsg('postMessage'); }, 2000);
+        loadPosts();
+      }
+    });
+}
+
+function handleDeletePost(postId) {
+  if (!client) return;
+  if (!confirm('确认删除这篇文章？')) return;
+
+  client.from('posts').delete().eq('id', postId)
+    .then(function(res) {
+      if (res.error) {
+        alert('删除失败: ' + res.error.message);
+      } else {
+        loadPosts();
+      }
+    });
+}
+
+function loadPosts() {
+  if (!client) return;
+  var container = document.getElementById('postsList');
+  container.innerHTML = '<div class="loading">加载中...</div>';
+
+  client.from('posts').select('*').order('created_at', { ascending: false })
+    .then(function(res) {
+      if (res.error) {
+        container.innerHTML = '<div class="message error">加载失败: ' + escapeHtml(res.error.message) + '</div>';
+        return;
+      }
+      var data = res.data;
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div class="empty-state">📭 还没有文章，快写一篇吧！</div>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < data.length; i++) {
+        var post = data[i];
+        html += '<div class="post-card">';
+        html += '<div class="post-header">';
+        html += '<span class="post-title">' + escapeHtml(post.title) + '</span>';
+        html += '<span class="post-meta">' + formatDate(post.created_at) + '</span>';
+        html += '</div>';
+        if (post.content) {
+          html += '<div class="post-content">' + escapeHtml(post.content) + '</div>';
+        }
+        if (currentUser && post.user_id === currentUser.id) {
+          html += '<div class="post-actions">';
+          html += '<button class="btn-delete" onclick="handleDeletePost(\'' + post.id + '\')">🗑️ 删除</button>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      container.innerHTML = html;
+    });
+}
+
+function subscribeRealtime() {
+  if (!client) return;
+  client.channel('posts-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, function() {
+      loadPosts();
+    })
+    .subscribe();
+}
+
+// ============ 初始化（SDK 加载完后执行）============
+function initApp() {
+  if (!window.supabase || !window.supabase.createClient) {
+    showMsg('authMessage', 'error', 'Supabase SDK 加载失败，请刷新页面重试');
+    return;
+  }
+
+  client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // 监听认证状态
+  client.auth.onAuthStateChange(function(event, session) {
+    if (session && session.user) {
+      showMainPage(session.user);
+    } else {
+      showAuthPage();
+    }
+  });
+
+  // 检查当前会话
+  client.auth.getSession().then(function(res) {
+    if (res.data.session && res.data.session.user) {
+      showMainPage(res.data.session.user);
+    } else {
+      showAuthPage();
+    }
+  });
+}
+
+// ============ 动态加载 SDK ============
+function loadSDK(url, callback) {
+  var script = document.createElement('script');
+  script.src = url;
+  script.onload = function() {
+    if (window.supabase && window.supabase.createClient) {
+      callback();
+    } else {
+      callback('loaded but no createClient');
+    }
+  };
+  script.onerror = function() {
+    callback('load failed');
+  };
+  document.head.appendChild(script);
+}
+
+// 依次尝试多个 CDN
+var cdnList = [
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+  'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.49.1/umd/supabase.min.js'
+];
+
+function tryLoadSDK(index) {
+  if (index >= cdnList.length) {
+    showMsg('authMessage', 'error', '所有 CDN 均加载失败，请检查网络后刷新页面');
+    return;
+  }
+  loadSDK(cdnList[index], function(err) {
+    if (err) {
+      tryLoadSDK(index + 1);
+    } else {
+      initApp();
+    }
+  });
+}
+
+tryLoadSDK(0);
 </script>
 </body>
 </html>
