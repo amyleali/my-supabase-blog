@@ -439,11 +439,13 @@ function uploadCover(postId) {
     upsert: false
   }).then(function(res) {
     if (res.error) {
-      console.warn('Storage upload error:', res.error.message);
+      console.error('Storage upload error:', res.error.message);
+      alert('封面图上传失败: ' + res.error.message + '\n\n请检查 Storage RLS 策略是否已配置（见下方说明）');
       return null;
     }
     // 获取公开 URL
     var urlRes = client.storage.from('post-covers').getPublicUrl(fileName);
+    console.log('Cover uploaded:', urlRes.data.publicUrl);
     return urlRes.data.publicUrl;
   });
 }
@@ -500,8 +502,14 @@ function handleDeletePost(postId) {
 }
 
 // ============ Edge Functions: AI 摘要 (能力5) ============
-function handleGenerateSummary(postId, content) {
+// 用全局缓存存储文章内容，避免把 content 直接嵌入 onclick 属性
+var _postContentCache = {};
+
+function handleGenerateSummary(postId) {
   if (!client) return;
+  var content = _postContentCache[postId];
+  if (!content) { alert('文章内容为空，无法生成摘要'); return; }
+
   var btn = document.getElementById('btn-ai-' + postId);
   if (btn) { btn.disabled = true; btn.textContent = '⏳ 生成中...'; }
 
@@ -587,7 +595,8 @@ function loadPosts() {
             html += '<button class="btn-sm btn-delete" onclick="handleDeletePost(\'' + post.id + '\')">🗑️ 删除</button>';
           }
           if (!post.summary && post.content) {
-            html += '<button class="btn-sm btn-ai" id="btn-ai-' + post.id + '" onclick="handleGenerateSummary(\'' + post.id + '\', ' + JSON.stringify(post.content).replace(/'/g, "\\'") + ')">🤖 AI摘要</button>';
+            _postContentCache[post.id] = post.content;
+            html += '<button class="btn-sm btn-ai" id="btn-ai-' + post.id + '" onclick="handleGenerateSummary(\'' + post.id + '\')">🤖 AI摘要</button>';
           }
           html += '</div>';
         }
