@@ -3,17 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的博客 - Supabase Blog</title>
+  <title>我的博客 - Supabase 6大能力全覆盖</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; min-height: 100vh; }
     .navbar { background: #1a1a2e; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .navbar h1 { font-size: 20px; font-weight: 600; }
+    .navbar .nav-tabs { display: flex; gap: 4px; }
+    .navbar .nav-tabs button { background: rgba(255,255,255,0.1); color: #ccc; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+    .navbar .nav-tabs button:hover { background: rgba(255,255,255,0.2); color: white; }
+    .navbar .nav-tabs button.active { background: #4361ee; color: white; }
     .navbar .user-info { display: flex; align-items: center; gap: 12px; }
     .navbar .user-email { font-size: 13px; color: #a0a0b0; }
-    .navbar button { background: #e94560; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-    .navbar button:hover { background: #c23152; }
-    .container { max-width: 800px; margin: 0 auto; padding: 24px; }
+    .navbar button.btn-logout { background: #e94560; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .navbar button.btn-logout:hover { background: #c23152; }
+    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
     .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
     .auth-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
     .auth-box h2 { margin-bottom: 8px; color: #1a1a2e; }
@@ -25,26 +29,82 @@
     .auth-box .btn-primary:disabled { background: #a0b0e0; cursor: not-allowed; }
     .auth-box .switch-link { margin-top: 16px; text-align: center; font-size: 13px; color: #666; }
     .auth-box .switch-link a { color: #4361ee; cursor: pointer; text-decoration: none; }
-    .auth-box .switch-link a:hover { text-decoration: underline; }
     .message { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
     .message.error { background: #fff0f0; color: #e53935; border: 1px solid #ffcdd2; }
     .message.success { background: #f0fff0; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .message.info { background: #f0f4ff; color: #1565c0; border: 1px solid #bbdefb; }
+
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Post form */
     .post-form { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 24px; }
     .post-form h3 { margin-bottom: 16px; color: #1a1a2e; }
-    .post-form input, .post-form textarea { width: 100%; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; font-family: inherit; }
+    .post-form input[type="text"], .post-form textarea { width: 100%; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; font-size: 14px; outline: none; font-family: inherit; }
     .post-form textarea { min-height: 100px; resize: vertical; }
     .post-form input:focus, .post-form textarea:focus { border-color: #4361ee; }
-    .post-form button { padding: 10px 24px; background: #4361ee; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
-    .post-form button:hover { background: #3a56d4; }
+    .post-form .form-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+    .post-form .form-row label { font-size: 13px; color: #555; white-space: nowrap; }
+    .post-form .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #4361ee; color: white; }
+    .btn-primary:hover { background: #3a56d4; }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-success:hover { background: #1b5e20; }
+    .btn-warning { background: #ff9800; color: white; }
+    .btn-warning:hover { background: #e65100; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Cover image */
+    .cover-upload { border: 2px dashed #ddd; border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+    .cover-upload:hover { border-color: #4361ee; background: #f8faff; }
+    .cover-upload img { max-width: 100%; max-height: 150px; border-radius: 6px; }
+    .cover-upload .upload-hint { color: #999; font-size: 13px; }
+
+    /* Post card */
     .post-card { background: white; padding: 20px 24px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 12px; transition: transform 0.15s; }
     .post-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+    .post-card .post-cover { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
     .post-card .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .post-card .post-title { font-size: 16px; font-weight: 600; color: #1a1a2e; }
     .post-card .post-meta { font-size: 12px; color: #999; }
     .post-card .post-content { font-size: 14px; color: #555; line-height: 1.6; }
-    .post-card .post-actions { margin-top: 12px; display: flex; gap: 8px; }
-    .post-card .btn-delete { padding: 6px 12px; background: #fff0f0; color: #e53935; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .post-card .post-summary { font-size: 13px; color: #4361ee; background: #f0f4ff; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-style: italic; }
+    .post-card .post-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .post-card .btn-sm { padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; border: 1px solid; }
+    .post-card .btn-delete { background: #fff0f0; color: #e53935; border-color: #ffcdd2; }
     .post-card .btn-delete:hover { background: #e53935; color: white; }
+    .post-card .btn-ai { background: #f0f4ff; color: #4361ee; border-color: #bbdefb; }
+    .post-card .btn-ai:hover { background: #4361ee; color: white; }
+
+    /* Comments */
+    .comments-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+    .comments-section h4 { font-size: 13px; color: #666; margin-bottom: 8px; }
+    .comment-item { font-size: 13px; color: #555; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
+    .comment-form { display: flex; gap: 8px; margin-top: 8px; }
+    .comment-form input { flex: 1; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 13px; outline: none; }
+    .comment-form button { padding: 8px 14px; background: #4361ee; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+    /* API Demo panel */
+    .api-demo { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 16px; }
+    .api-demo h3 { margin-bottom: 12px; color: #1a1a2e; font-size: 16px; }
+    .api-demo .api-desc { font-size: 13px; color: #666; margin-bottom: 16px; }
+    .api-demo pre { background: #1a1a2e; color: #a0e0a0; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 12px; line-height: 1.6; margin-top: 12px; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; }
+    .api-demo .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 6px; }
+    .badge-rest { background: #e8f5e9; color: #2e7d32; }
+    .badge-graphql { background: #f3e5f5; color: #6a1b9a; }
+    .badge-storage { background: #fff3e0; color: #e65100; }
+    .badge-edge { background: #e3f2fd; color: #1565c0; }
+    .badge-realtime { background: #fce4ec; color: #c62828; }
+    .badge-auth { background: #f1f8e9; color: #33691e; }
+
+    /* Capability badges */
+    .capability-bar { background: white; padding: 12px 24px; border-bottom: 1px solid #eee; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .capability-bar span { font-size: 12px; color: #666; }
+
     .empty-state { text-align: center; padding: 40px; color: #999; }
     .loading { text-align: center; padding: 20px; color: #999; }
     .hidden { display: none !important; }
@@ -53,17 +113,34 @@
 <body>
 
 <div class="navbar">
-  <h1>📝 My Blog</h1>
+  <h1>📝 Supabase Blog <sup style="font-size:10px;color:#4361ee;">6/6</sup></h1>
+  <div class="nav-tabs" id="navTabs">
+    <button class="active" onclick="switchTab('blog')">📚 博客</button>
+    <button onclick="switchTab('rest')">🔌 REST API</button>
+    <button onclick="switchTab('graphql')">💠 GraphQL</button>
+    <button onclick="switchTab('overview')">📊 能力总览</button>
+  </div>
   <div class="user-info hidden" id="guestInfo">
     <span class="user-email">游客模式</span>
-    <button onclick="goToLogin()" style="background:#4361ee;">去登录</button>
+    <button class="btn-logout" onclick="goToLogin()" style="background:#4361ee;">去登录</button>
   </div>
   <div class="user-info hidden" id="userInfo">
     <span class="user-email" id="userEmail"></span>
-    <button onclick="handleLogout()">退出登录</button>
+    <button class="btn-logout" onclick="handleLogout()">退出登录</button>
   </div>
 </div>
 
+<div class="capability-bar">
+  <span>已覆盖能力：</span>
+  <span class="badge badge-auth">✅ Auth</span>
+  <span class="badge badge-rest">✅ Database</span>
+  <span class="badge badge-realtime">✅ Realtime</span>
+  <span class="badge badge-storage">✅ Storage</span>
+  <span class="badge badge-edge">✅ Edge Functions</span>
+  <span class="badge badge-graphql">✅ REST & GraphQL</span>
+</div>
+
+<!-- ========== 登录页 ========== -->
 <div id="authPage" class="auth-container">
   <div class="auth-box">
     <h2 id="authTitle">登录</h2>
@@ -84,30 +161,142 @@
   </div>
 </div>
 
+<!-- ========== 主页面 ========== -->
 <div id="mainPage" class="container hidden">
-  <div class="post-form" id="postForm">
-    <h3>✍️ 写文章</h3>
-    <div id="postMessage"></div>
-    <input type="text" id="postTitle" placeholder="文章标题" required>
-    <textarea id="postContent" placeholder="文章内容..."></textarea>
-    <button onclick="handleCreatePost()">发布文章</button>
+
+  <!-- Tab: 博客 -->
+  <div class="tab-panel active" id="panel-blog">
+    <div class="post-form" id="postForm">
+      <h3>✍️ 写文章</h3>
+      <div id="postMessage"></div>
+      <input type="text" id="postTitle" placeholder="文章标题" required>
+      <textarea id="postContent" placeholder="文章内容..."></textarea>
+      <!-- Storage: 封面图上传 -->
+      <div class="cover-upload" id="coverUpload" onclick="document.getElementById('coverFile').click()">
+        <div class="upload-hint" id="coverHint">📷 点击上传封面图（使用 Supabase Storage）</div>
+        <img id="coverPreview" class="hidden" alt="封面预览">
+        <input type="file" id="coverFile" accept="image/*" style="display:none" onchange="handleCoverSelect(event)">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="handleCreatePost()">发布文章</button>
+      </div>
+    </div>
+    <div class="posts-list">
+      <h3 style="margin-bottom:16px;">📚 所有文章 <span style="font-size:12px;color:#999;">(Realtime 实时同步)</span></h3>
+      <div id="postsList">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
   </div>
-  <div class="posts-list">
-    <h3>📚 所有文章</h3>
-    <div id="postsList">
-      <div class="loading">加载中...</div>
+
+  <!-- Tab: REST API Demo -->
+  <div class="tab-panel" id="panel-rest">
+    <div class="api-demo">
+      <h3><span class="badge badge-rest">REST</span> 直接调用 PostgREST API</h3>
+      <p class="api-desc">不使用 SDK，直接通过 fetch 调用 Supabase 暴露的 PostgREST 端点，展示 REST API 能力。</p>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="demoRestGetPosts()">GET /rest/v1/posts</button>
+        <button class="btn btn-secondary" onclick="demoRestGetStats()">GET /rest/v1/posts?select=count</button>
+      </div>
+      <pre id="restResult">// 点击按钮查看 REST API 响应...</pre>
+    </div>
+    <div class="api-demo">
+      <h3><span class="badge badge-rest">REST</span> 带过滤条件的查询</h3>
+      <p class="api-desc">PostgREST 支持丰富的查询语法：eq, gt, lt, like, in, order, limit 等。</p>
+      <div class="btn-group">
+        <button class="btn btn-warning" onclick="demoRestFiltered()">GET posts?order=created_at.desc&limit=3</button>
+      </div>
+      <pre id="restFilteredResult">// 展示 PostgREST 过滤能力...</pre>
+    </div>
+  </div>
+
+  <!-- Tab: GraphQL Demo -->
+  <div class="tab-panel" id="panel-graphql">
+    <div class="api-demo">
+      <h3><span class="badge badge-graphql">GraphQL</span> pg_graphql 查询</h3>
+      <p class="api-desc">通过 Supabase 的 /graphql/v1 端点，使用 GraphQL 查询文章和评论的关联数据（需启用 pg_graphql 扩展）。</p>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="demoGraphqlPosts()">查询文章列表</button>
+        <button class="btn btn-secondary" onclick="demoGraphqlWithComments()">查询文章+评论（嵌套）</button>
+      </div>
+      <pre id="graphqlResult">// 点击按钮查看 GraphQL 响应...
+
+// 示例查询:
+// query {
+//   postsCollection(orderBy: [{created_at: DescNullsLast}], first: 5) {
+//     edges {
+//       node { id, title, content, created_at, cover_url }
+//     }
+//   }
+// }</pre>
+    </div>
+  </div>
+
+  <!-- Tab: 能力总览 -->
+  <div class="tab-panel" id="panel-overview">
+    <div class="api-demo">
+      <h3>📊 Supabase 6 大核心能力使用情况</h3>
+      <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:14px;">
+        <thead>
+          <tr style="background:#f8f9fa;text-align:left;">
+            <th style="padding:12px;border-bottom:2px solid #eee;">#</th>
+            <th style="padding:12px;border-bottom:2px solid #eee;">能力</th>
+            <th style="padding:12px;border-bottom:2px solid #eee;">使用方式</th>
+            <th style="padding:12px;border-bottom:2px solid #eee;">代码位置</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0;">1</td><td><span class="badge badge-rest">Database</span></td><td>posts 表 CRUD + comments 表</td><td>SDK client.from()</td></tr>
+          <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0;">2</td><td><span class="badge badge-auth">Auth</span></td><td>邮箱注册/登录/退出/会话管理</td><td>client.auth.*</td></tr>
+          <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0;">3</td><td><span class="badge badge-realtime">Realtime</span></td><td>监听 posts 表变更，自动刷新列表</td><td>client.channel().on()</td></tr>
+          <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0;">4</td><td><span class="badge badge-storage">Storage</span></td><td>文章封面图上传到 post-covers bucket</td><td>client.storage.from()</td></tr>
+          <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0;">5</td><td><span class="badge badge-edge">Edge Functions</span></td><td>调用 generate-summary 生成 AI 摘要</td><td>client.functions.invoke()</td></tr>
+          <tr><td style="padding:10px;border-bottom:1px solid #f0f0f0;">6</td><td><span class="badge badge-graphql">REST & GraphQL</span></td><td>直接 fetch /rest/v1 和 /graphql/v1</td><td>原生 fetch()</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="api-demo">
+      <h3>🔧 后端准备清单（需在 Supabase Dashboard 配置）</h3>
+      <pre id="setupGuide">-- 1. 给 posts 表添加 cover_url 和 summary 字段
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS cover_url text;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS summary text;
+
+-- 2. 创建 comments 表
+CREATE TABLE IF NOT EXISTS comments (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id uuid REFERENCES posts(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES auth.users(id),
+  content text NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+
+-- 3. 启用 RLS
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can read comments" ON comments FOR SELECT USING (true);
+CREATE POLICY "Auth users can insert comments" ON comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- 4. 创建 Storage bucket（在 Storage 面板操作）
+-- 名称: post-covers, Public bucket: true
+
+-- 5. 启用 pg_graphql 扩展
+CREATE EXTENSION IF NOT EXISTS pg_graphql;
+
+-- 6. 部署 Edge Function (supabase functions deploy generate-summary)
+-- 参见项目 supabase/functions/generate-summary/index.ts</pre>
     </div>
   </div>
 </div>
 
 <script>
-// ============ 全局变量（最先声明）============
+// ============ 配置 ============
+var SUPABASE_URL = 'https://wrhnligiekozaaylpnhi.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyaG5saWdpZWtvemFheWxwbmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NjMyMjQsImV4cCI6MjA4MjIzOTIyNH0.JtS87jYZoEe6N3v3RsKAeZiUdAuTvLY0PEHcOdTUmCI';
+
+// ============ 全局变量 ============
 var isLoginMode = true;
 var currentUser = null;
 var client = null;
-
-var SUPABASE_URL = 'https://wrhnligiekozaaylpnhi.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyaG5saWdpZWtvemFheWxwbmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NjMyMjQsImV4cCI6MjA4MjIzOTIyNH0.JtS87jYZoEe6N3v3RsKAeZiUdAuTvLY0PEHcOdTUmCI';
+var selectedCoverFile = null;
 
 // ============ 工具函数 ============
 function escapeHtml(text) {
@@ -130,11 +319,27 @@ function clearMsg(targetId) {
   document.getElementById(targetId).innerHTML = '';
 }
 
+// ============ Tab 切换 ============
+function switchTab(tab) {
+  // 更新按钮状态
+  var buttons = document.querySelectorAll('.nav-tabs button');
+  var panels = document.querySelectorAll('.tab-panel');
+  buttons.forEach(function(btn, i) {
+    btn.classList.remove('active');
+  });
+  panels.forEach(function(p) { p.classList.remove('active'); });
+
+  var tabMap = { blog: 0, rest: 1, graphql: 2, overview: 3 };
+  buttons[tabMap[tab]].classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
 // ============ 页面切换 ============
 function showAuthPage() {
   document.getElementById('authPage').classList.remove('hidden');
   document.getElementById('mainPage').classList.add('hidden');
   document.getElementById('userInfo').classList.add('hidden');
+  document.getElementById('guestInfo').classList.add('hidden');
 }
 
 function showMainPage(user) {
@@ -149,7 +354,7 @@ function showMainPage(user) {
   subscribeRealtime();
 }
 
-// ============ 认证 ============
+// ============ 认证 (能力2: Auth) ============
 function toggleAuthMode() {
   isLoginMode = !isLoginMode;
   document.getElementById('authTitle').textContent = isLoginMode ? '登录' : '注册';
@@ -162,25 +367,18 @@ function toggleAuthMode() {
 
 function handleAuth(e) {
   e.preventDefault();
-  if (!client) {
-    showMsg('authMessage', 'error', 'Supabase 未初始化，请刷新页面');
-    return;
-  }
+  if (!client) { showMsg('authMessage', 'error', 'Supabase 未初始化'); return; }
 
   var email = document.getElementById('emailInput').value.trim();
   var password = document.getElementById('passwordInput').value;
   var btn = document.getElementById('authBtn');
-
   btn.disabled = true;
   btn.textContent = '处理中...';
   clearMsg('authMessage');
 
-  var promise;
-  if (isLoginMode) {
-    promise = client.auth.signInWithPassword({ email: email, password: password });
-  } else {
-    promise = client.auth.signUp({ email: email, password: password });
-  }
+  var promise = isLoginMode
+    ? client.auth.signInWithPassword({ email: email, password: password })
+    : client.auth.signUp({ email: email, password: password });
 
   promise.then(function(result) {
     if (result.error) {
@@ -200,7 +398,7 @@ function handleLogout() {
   if (client) client.auth.signOut();
 }
 
-// ============ 匿名浏览 ============
+// ============ 游客模式 ============
 function enterAsGuest() {
   currentUser = null;
   document.getElementById('authPage').classList.add('hidden');
@@ -214,57 +412,145 @@ function enterAsGuest() {
 function goToLogin() {
   document.getElementById('guestInfo').classList.add('hidden');
   document.getElementById('mainPage').classList.add('hidden');
-  document.getElementById('postForm').classList.remove('hidden');
   showAuthPage();
 }
 
-// ============ 文章操作 ============
+// ============ Storage: 封面图上传 (能力4) ============
+function handleCoverSelect(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  selectedCoverFile = file;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var img = document.getElementById('coverPreview');
+    img.src = ev.target.result;
+    img.classList.remove('hidden');
+    document.getElementById('coverHint').textContent = '✅ ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+  };
+  reader.readAsDataURL(file);
+}
+
+function uploadCover(postId) {
+  if (!selectedCoverFile || !client) return Promise.resolve(null);
+
+  var fileName = postId + '_' + Date.now() + '.' + selectedCoverFile.name.split('.').pop();
+  return client.storage.from('post-covers').upload(fileName, selectedCoverFile, {
+    cacheControl: '3600',
+    upsert: false
+  }).then(function(res) {
+    if (res.error) {
+      console.warn('Storage upload error:', res.error.message);
+      return null;
+    }
+    // 获取公开 URL
+    var urlRes = client.storage.from('post-covers').getPublicUrl(fileName);
+    return urlRes.data.publicUrl;
+  });
+}
+
+// ============ 文章 CRUD (能力1: Database) ============
 function handleCreatePost() {
   if (!client || !currentUser) return;
-
   var title = document.getElementById('postTitle').value.trim();
   var content = document.getElementById('postContent').value.trim();
-
-  if (!title) {
-    showMsg('postMessage', 'error', '请输入文章标题');
-    return;
-  }
+  if (!title) { showMsg('postMessage', 'error', '请输入文章标题'); return; }
   clearMsg('postMessage');
 
+  // 先插入文章，再上传封面
   client.from('posts').insert([{ title: title, content: content, user_id: currentUser.id }]).select()
     .then(function(res) {
       if (res.error) {
         showMsg('postMessage', 'error', '发布失败: ' + res.error.message);
+        return;
+      }
+      var post = res.data[0];
+      // 如果有封面图，上传并更新
+      if (selectedCoverFile) {
+        return uploadCover(post.id).then(function(coverUrl) {
+          if (coverUrl) {
+            return client.from('posts').update({ cover_url: coverUrl }).eq('id', post.id);
+          }
+        }).then(function() {
+          finishCreatePost();
+        });
       } else {
-        showMsg('postMessage', 'success', '发布成功！');
-        document.getElementById('postTitle').value = '';
-        document.getElementById('postContent').value = '';
-        setTimeout(function() { clearMsg('postMessage'); }, 2000);
-        loadPosts();
+        finishCreatePost();
       }
     });
+}
+
+function finishCreatePost() {
+  showMsg('postMessage', 'success', '发布成功！');
+  document.getElementById('postTitle').value = '';
+  document.getElementById('postContent').value = '';
+  document.getElementById('coverPreview').classList.add('hidden');
+  document.getElementById('coverHint').textContent = '📷 点击上传封面图（使用 Supabase Storage）';
+  selectedCoverFile = null;
+  document.getElementById('coverFile').value = '';
+  setTimeout(function() { clearMsg('postMessage'); }, 2000);
+  loadPosts();
 }
 
 function handleDeletePost(postId) {
-  if (!client) return;
-  if (!confirm('确认删除这篇文章？')) return;
+  if (!client || !confirm('确认删除这篇文章？')) return;
+  client.from('posts').delete().eq('id', postId).then(function(res) {
+    if (res.error) alert('删除失败: ' + res.error.message);
+    else loadPosts();
+  });
+}
 
-  client.from('posts').delete().eq('id', postId)
-    .then(function(res) {
-      if (res.error) {
-        alert('删除失败: ' + res.error.message);
-      } else {
+// ============ Edge Functions: AI 摘要 (能力5) ============
+function handleGenerateSummary(postId, content) {
+  if (!client) return;
+  var btn = document.getElementById('btn-ai-' + postId);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 生成中...'; }
+
+  client.functions.invoke('generate-summary', {
+    body: { post_id: postId, content: content }
+  }).then(function(res) {
+    if (res.error) {
+      alert('Edge Function 调用失败: ' + (res.error.message || JSON.stringify(res.error)));
+      if (btn) { btn.disabled = false; btn.textContent = '🤖 AI摘要'; }
+      return;
+    }
+    var data = res.data;
+    if (data && data.summary) {
+      // 更新到数据库
+      client.from('posts').update({ summary: data.summary }).eq('id', postId).then(function() {
         loadPosts();
-      }
+      });
+    } else {
+      alert('Edge Function 返回无摘要');
+      if (btn) { btn.disabled = false; btn.textContent = '🤖 AI摘要'; }
+    }
+  }).catch(function(err) {
+    alert('Edge Function 网络错误: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 AI摘要'; }
+  });
+}
+
+// ============ 评论 (Database 扩展) ============
+function handleAddComment(postId) {
+  if (!client || !currentUser) { alert('请先登录'); return; }
+  var input = document.getElementById('comment-input-' + postId);
+  var content = input.value.trim();
+  if (!content) return;
+
+  client.from('comments').insert([{ post_id: postId, user_id: currentUser.id, content: content }])
+    .then(function(res) {
+      if (res.error) { alert('评论失败: ' + res.error.message); return; }
+      input.value = '';
+      loadPosts();
     });
 }
 
+// ============ 加载文章列表 ============
 function loadPosts() {
   if (!client) return;
   var container = document.getElementById('postsList');
   container.innerHTML = '<div class="loading">加载中...</div>';
 
-  client.from('posts').select('*').order('created_at', { ascending: false })
+  client.from('posts').select('*, comments(id, content, created_at)').order('created_at', { ascending: false })
     .then(function(res) {
       if (res.error) {
         container.innerHTML = '<div class="message error">加载失败: ' + escapeHtml(res.error.message) + '</div>';
@@ -279,6 +565,10 @@ function loadPosts() {
       for (var i = 0; i < data.length; i++) {
         var post = data[i];
         html += '<div class="post-card">';
+        // 封面图 (Storage)
+        if (post.cover_url) {
+          html += '<img class="post-cover" src="' + escapeHtml(post.cover_url) + '" alt="封面">';
+        }
         html += '<div class="post-header">';
         html += '<span class="post-title">' + escapeHtml(post.title) + '</span>';
         html += '<span class="post-meta">' + formatDate(post.created_at) + '</span>';
@@ -286,36 +576,155 @@ function loadPosts() {
         if (post.content) {
           html += '<div class="post-content">' + escapeHtml(post.content) + '</div>';
         }
-        if (currentUser && post.user_id === currentUser.id) {
+        // AI 摘要 (Edge Functions)
+        if (post.summary) {
+          html += '<div class="post-summary">🤖 AI摘要：' + escapeHtml(post.summary) + '</div>';
+        }
+        // 操作按钮
+        if (currentUser) {
           html += '<div class="post-actions">';
-          html += '<button class="btn-delete" onclick="handleDeletePost(\'' + post.id + '\')">🗑️ 删除</button>';
+          if (post.user_id === currentUser.id) {
+            html += '<button class="btn-sm btn-delete" onclick="handleDeletePost(\'' + post.id + '\')">🗑️ 删除</button>';
+          }
+          if (!post.summary && post.content) {
+            html += '<button class="btn-sm btn-ai" id="btn-ai-' + post.id + '" onclick="handleGenerateSummary(\'' + post.id + '\', ' + JSON.stringify(post.content).replace(/'/g, "\\'") + ')">🤖 AI摘要</button>';
+          }
           html += '</div>';
         }
+        // 评论区
+        html += '<div class="comments-section">';
+        html += '<h4>💬 评论 (' + (post.comments ? post.comments.length : 0) + ')</h4>';
+        if (post.comments && post.comments.length > 0) {
+          for (var j = 0; j < post.comments.length; j++) {
+            html += '<div class="comment-item">' + escapeHtml(post.comments[j].content) + ' <span style="color:#aaa;font-size:11px;">' + formatDate(post.comments[j].created_at) + '</span></div>';
+          }
+        }
+        if (currentUser) {
+          html += '<div class="comment-form">';
+          html += '<input id="comment-input-' + post.id + '" placeholder="写评论..." onkeydown="if(event.key===\'Enter\')handleAddComment(\'' + post.id + '\')">';
+          html += '<button onclick="handleAddComment(\'' + post.id + '\')">发送</button>';
+          html += '</div>';
+        }
+        html += '</div>';
         html += '</div>';
       }
       container.innerHTML = html;
     });
 }
 
+// ============ Realtime 订阅 (能力3) ============
 function subscribeRealtime() {
   if (!client) return;
   client.channel('posts-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, function() {
-      loadPosts();
-    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, function() { loadPosts(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, function() { loadPosts(); })
     .subscribe();
 }
 
-// ============ 初始化（SDK 加载完后执行）============
+// ============ REST API Demo (能力6a) ============
+function demoRestGetPosts() {
+  var resultEl = document.getElementById('restResult');
+  resultEl.textContent = '// 请求中...\n// GET ' + SUPABASE_URL + '/rest/v1/posts?select=id,title,created_at&order=created_at.desc&limit=5';
+
+  fetch(SUPABASE_URL + '/rest/v1/posts?select=id,title,created_at,cover_url&order=created_at.desc&limit=5', {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    }
+  }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      resultEl.textContent = '// GET /rest/v1/posts?select=id,title,created_at,cover_url&order=created_at.desc&limit=5\n// Response:\n' + JSON.stringify(data, null, 2);
+    }).catch(function(err) {
+      resultEl.textContent = '// Error: ' + err.message;
+    });
+}
+
+function demoRestGetStats() {
+  var resultEl = document.getElementById('restResult');
+  fetch(SUPABASE_URL + '/rest/v1/posts?select=*', {
+    method: 'HEAD',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Prefer': 'count=exact'
+    }
+  }).then(function(r) {
+    var count = r.headers.get('content-range');
+    resultEl.textContent = '// HEAD /rest/v1/posts (Prefer: count=exact)\n// Content-Range: ' + count + '\n// 总文章数: ' + (count ? count.split('/')[1] : 'unknown');
+  }).catch(function(err) {
+    resultEl.textContent = '// Error: ' + err.message;
+  });
+}
+
+function demoRestFiltered() {
+  var resultEl = document.getElementById('restFilteredResult');
+  var url = SUPABASE_URL + '/rest/v1/posts?select=id,title,content&order=created_at.desc&limit=3';
+  resultEl.textContent = '// 请求中...\n// GET ' + url;
+
+  fetch(url, {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    }
+  }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      resultEl.textContent = '// GET /rest/v1/posts?select=id,title,content&order=created_at.desc&limit=3\n// PostgREST 过滤语法演示\n// Response:\n' + JSON.stringify(data, null, 2);
+    }).catch(function(err) {
+      resultEl.textContent = '// Error: ' + err.message;
+    });
+}
+
+// ============ GraphQL Demo (能力6b) ============
+function demoGraphqlPosts() {
+  var resultEl = document.getElementById('graphqlResult');
+  var query = '{ postsCollection(orderBy: [{created_at: DescNullsLast}], first: 5) { edges { node { id title created_at cover_url } } } }';
+  resultEl.textContent = '// 请求中...\n// POST /graphql/v1\n// Query: ' + query;
+
+  fetch(SUPABASE_URL + '/graphql/v1', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({ query: query })
+  }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      resultEl.textContent = '// POST /graphql/v1\n// Query: ' + query + '\n\n// Response:\n' + JSON.stringify(data, null, 2);
+    }).catch(function(err) {
+      resultEl.textContent = '// Error: ' + err.message;
+    });
+}
+
+function demoGraphqlWithComments() {
+  var resultEl = document.getElementById('graphqlResult');
+  var query = '{ postsCollection(first: 3) { edges { node { id title content commentsCollection { edges { node { id content created_at } } } } } } }';
+  resultEl.textContent = '// 请求中...\n// 嵌套查询: 文章 + 评论\n// Query: ' + query;
+
+  fetch(SUPABASE_URL + '/graphql/v1', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({ query: query })
+  }).then(function(r) { return r.json(); })
+    .then(function(data) {
+      resultEl.textContent = '// POST /graphql/v1 (嵌套查询)\n// Query: ' + query + '\n\n// Response:\n' + JSON.stringify(data, null, 2);
+    }).catch(function(err) {
+      resultEl.textContent = '// Error: ' + err.message;
+    });
+}
+
+// ============ 初始化 ============
 function initApp() {
   if (!window.supabase || !window.supabase.createClient) {
     showMsg('authMessage', 'error', 'Supabase SDK 加载失败，请刷新页面重试');
     return;
   }
-
   client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // 监听认证状态
   client.auth.onAuthStateChange(function(event, session) {
     if (session && session.user) {
       showMainPage(session.user);
@@ -324,7 +733,6 @@ function initApp() {
     }
   });
 
-  // 检查当前会话
   client.auth.getSession().then(function(res) {
     if (res.data.session && res.data.session.user) {
       showMainPage(res.data.session.user);
@@ -339,19 +747,13 @@ function loadSDK(url, callback) {
   var script = document.createElement('script');
   script.src = url;
   script.onload = function() {
-    if (window.supabase && window.supabase.createClient) {
-      callback();
-    } else {
-      callback('loaded but no createClient');
-    }
+    if (window.supabase && window.supabase.createClient) callback();
+    else callback('no createClient');
   };
-  script.onerror = function() {
-    callback('load failed');
-  };
+  script.onerror = function() { callback('load failed'); };
   document.head.appendChild(script);
 }
 
-// 依次尝试多个 CDN
 var cdnList = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
   'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js',
@@ -364,11 +766,8 @@ function tryLoadSDK(index) {
     return;
   }
   loadSDK(cdnList[index], function(err) {
-    if (err) {
-      tryLoadSDK(index + 1);
-    } else {
-      initApp();
-    }
+    if (err) tryLoadSDK(index + 1);
+    else initApp();
   });
 }
 
